@@ -31,3 +31,25 @@ enum Role {
   MANAGER
   USER
 }
+
+// user end here
+
+// Item start here
+model ItemMaster {
+  id    String @id @default(uuid())
+  sku   String @unique
+  name  String
+  image String
+  unit  String
+  stock Stock? @relation("ItemStock")
+}
+
+model Stock {
+  id       String @id @default(uuid())
+  itemId   String @unique
+  quantity Int    
+
+  item     ItemMaster @relation("ItemStock", fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+// Item end here
