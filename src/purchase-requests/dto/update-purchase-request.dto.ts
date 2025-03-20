@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePurchaseRequestDto } from './create-purchase-request.dto';
+// update-purchase-request.dto.ts
+import { IsEnum, IsOptional } from 'class-validator';
+import { PRStatus } from '@prisma/client';
 
-export class UpdatePurchaseRequestDto extends PartialType(CreatePurchaseRequestDto) {}
+export class UpdatePurchaseRequestDto {
+  @IsOptional()
+  @IsEnum(PRStatus)
+  status?: PRStatus;
+}

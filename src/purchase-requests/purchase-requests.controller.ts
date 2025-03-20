@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { PurchaseRequestsService } from './purchase-requests.service';
 import { Prisma } from '@prisma/client';
+import { CreatePurchaseRequestDto } from './dto/create-purchase-request.dto';
+import { UpdatePurchaseRequestDto } from './dto/update-purchase-request.dto';
 
 @Controller('purchase-requests')
 export class PurchaseRequestsController {
@@ -17,8 +19,8 @@ export class PurchaseRequestsController {
   ) {}
 
   @Post()
-  create(@Body() createPurchaseRequestDto: Prisma.PurchaseRequestCreateInput) {
-    return this.purchaseRequestsService.create(createPurchaseRequestDto);
+  create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
+    return this.purchaseRequestsService.createPurchaseRequest(createPurchaseRequestDto);
   }
 
   @Get()
@@ -34,7 +36,7 @@ export class PurchaseRequestsController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updatePurchaseRequestDto: Prisma.PurchaseRequestUpdateInput,
+    @Body() updatePurchaseRequestDto: UpdatePurchaseRequestDto,
   ) {
     return this.purchaseRequestsService.update(id, updatePurchaseRequestDto);
   }
