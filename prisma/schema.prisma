@@ -24,6 +24,8 @@ model User {
   phone    String @unique
   role     Role   @default(USER)
   password String
+
+  purchaseRequest PurchaseRequest[]
 }
 
 enum Role {
@@ -34,22 +36,55 @@ enum Role {
 
 // user end here
 
-// Item start here
+// Item start here //todo: add price to item
 model ItemMaster {
   id    String @id @default(uuid())
   sku   String @unique
   name  String
   image String
   unit  String
+  price Float @default(0.0)
   stock Stock? @relation("ItemStock")
+
+  purchaseRequestItem PurchaseRequestItem[]
 }
 
 model Stock {
   id       String @id @default(uuid())
   itemId   String @unique
-  quantity Int    
+  quantity Int
 
-  item     ItemMaster @relation("ItemStock", fields: [itemId], references: [id], onDelete: Cascade)
+  item ItemMaster @relation("ItemStock", fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 // Item end here
+
+// Purchase Request start here
+model PurchaseRequest {
+  id        String                @id @default(uuid())
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     PurchaseRequestItem[]
+  totalQty  Int
+  price     Float
+  status    PRStatus
+  createdAt DateTime              @default(now())
+}
+
+enum PRStatus {
+  WAITING
+  PARTIAL
+  COMPLETE
+  OVER
+  CANCEL
+}
+
+model PurchaseRequestItem {
+  id                String          @id @default(uuid())
+  purchaseRequestId String
+  itemId            String
+  quantity          Int
+  item              ItemMaster      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_item_master")
+  purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade, map: "fk_purchase_request")
+}
+// Purchase Request end here
