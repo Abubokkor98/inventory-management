@@ -1,11 +1,14 @@
+import { PRStatus } from '@prisma/client';
 import {
   Injectable,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { Prisma, PRStatus } from '@prisma/client';
-import { CreatePurchaseRequestDto } from './dto/create-purchase-request.dto';
+import {
+  CreatePurchaseRequestDto,
+  PurchaseRequestItemDto,
+} from './dto/create-purchase-request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase-request.dto';
 
 @Injectable()
@@ -50,7 +53,7 @@ export class PurchaseRequestsService {
       const purchaseRequest = await prisma.purchaseRequest.create({
         data: {
           totalQty,
-          price: totalPrice,
+          totalPrice: totalPrice,
           status: PRStatus.WAITING,
           items: {
             create: itemsWithDetails.map((item) => ({
@@ -112,30 +115,118 @@ export class PurchaseRequestsService {
   }
 
   // todo: facing problem with update , will change it later
-  async update(id: string, updateDto: UpdatePurchaseRequestDto) {
-    await this.findOne(id);
+  // async update(id: string, updateDto: UpdatePurchaseRequestDto) {
+  //   await this.findOne(id);
 
-    // Add custom validation here if needed
-    if (updateDto.status) {
-      // Example: Validate status transitions
-      const current = await this.databaseService.purchaseRequest.findUnique({
+  //   // Add custom validation here if needed
+  //   if (updateDto.status) {
+  //     // Example: Validate status transitions
+  //     const current = await this.databaseService.purchaseRequest.findUnique({
+  //       where: { id },
+  //       select: { status: true },
+  //     });
+
+  //     if (
+  //       current?.status === PRStatus.COMPLETE &&
+  //       updateDto.status !== PRStatus.COMPLETE
+  //     ) {
+  //       throw new BadRequestException('Cannot modify completed requests');
+  //     }
+  //   }
+
+  //   return this.databaseService.purchaseRequest.update({
+  //     where: { id },
+  //     data: updateDto,
+  //     include: { items: true },
+  //   });
+  // }
+
+  async update(id: string, updateDto: UpdatePurchaseRequestDto) {
+    return this.databaseService.$transaction(async (prisma) => {
+      // 1. Check existing request and status
+      const existingRequest = await prisma.purchaseRequest.findUnique({
         where: { id },
-        select: { status: true },
+        include: { items: true },
       });
 
-      if (
-        current?.status === PRStatus.COMPLETE &&
-        updateDto.status !== PRStatus.COMPLETE
-      ) {
-        throw new BadRequestException('Cannot modify completed requests');
+      if (!existingRequest)
+        throw new NotFoundException(`Request ${id} not found`);
+      if (existingRequest.status !== PRStatus.WAITING) {
+        throw new BadRequestException('Only WAITING requests can be modified');
       }
-    }
 
-    return this.databaseService.purchaseRequest.update({
-      where: { id },
-      data: updateDto,
-      include: { items: true },
+      // 2. Process item updates if provided
+      if (updateDto.items) {
+        // Validate and prepare new items
+        const itemsWithDetails = await this.validateAndPrepareItems(
+          prisma,
+          updateDto.items,
+        );
+
+        // Delete existing items and create new ones
+        await prisma.purchaseRequestItem.deleteMany({
+          where: { purchaseRequestId: id },
+        });
+
+        // Recalculate totals
+        const totalQty = itemsWithDetails.reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
+        const totalPrice = itemsWithDetails.reduce(
+          (sum, item) => sum + item.quantity * item.price,
+          0,
+        );
+
+        return prisma.purchaseRequest.update({
+          where: { id },
+          data: {
+            totalQty,
+            totalPrice,
+            items: {
+              create: itemsWithDetails.map((item) => ({
+                itemId: item.itemId,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+            },
+          },
+          include: { items: true },
+        });
+      }
+
+      // 3. If no items provided, return original request
+      return existingRequest;
     });
+  }
+
+  private async validateAndPrepareItems(
+    prisma: any,
+    items: PurchaseRequestItemDto[],
+  ) {
+    return Promise.all(
+      items.map(async (item) => {
+        const itemMaster = await prisma.itemMaster.findUnique({
+          where: { id: item.itemId },
+          include: { stock: true },
+        });
+
+        if (!itemMaster) {
+          throw new NotFoundException(`Item ${item.itemId} not found`);
+        }
+
+        if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
+          );
+        }
+
+        return {
+          ...item,
+          price: itemMaster.price,
+        };
+      }),
+    );
   }
 
   async remove(id: string) {

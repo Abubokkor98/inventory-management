@@ -1,22 +1,15 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 // prisma/schema.prisma
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
   // uncomment next line if you use Prisma <5.10
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-// user start here
 model User {
   id       String @id @default(uuid())
   name     String
@@ -24,55 +17,32 @@ model User {
   phone    String @unique
   role     Role   @default(USER)
   password String
-
 }
 
-enum Role {
-  ADMIN
-  MANAGER
-  USER
-}
-
-// user end here
-
-// Item start here
 model ItemMaster {
-  id    String @id @default(uuid())
-  sku   String @unique
-  name  String
-  image String
-  unit  String
-  price Float @default(0.0)
-  stock Stock? @relation("ItemStock")
-
+  id                  String                @id @default(uuid())
+  sku                 String                @unique
+  name                String
+  image               String
+  unit                String
+  price               Float                 @default(0.0)
   purchaseRequestItem PurchaseRequestItem[]
+  stock               Stock?                @relation("ItemStock")
 }
 
 model Stock {
-  id       String @id @default(uuid())
-  itemId   String @unique
+  id       String     @id @default(uuid())
+  itemId   String     @unique
   quantity Int
-
-  item ItemMaster @relation("ItemStock", fields: [itemId], references: [id], onDelete: Cascade)
+  item     ItemMaster @relation("ItemStock", fields: [itemId], references: [id], onDelete: Cascade)
 }
 
-// Item end here
-
-// Purchase Request start here
 model PurchaseRequest {
-  id        String                @id @default(uuid())
-  items     PurchaseRequestItem[]
-  totalQty  Int
-  totalPrice     Float
-  status    PRStatus
-}
-
-enum PRStatus {
-  WAITING
-  PARTIAL
-  COMPLETE
-  OVER
-  CANCEL
+  id         String                @id @default(uuid())
+  totalQty   Int
+  status     PRStatus
+  totalPrice Float
+  items      PurchaseRequestItem[]
 }
 
 model PurchaseRequestItem {
@@ -84,4 +54,17 @@ model PurchaseRequestItem {
   item              ItemMaster      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_item_master")
   purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade, map: "fk_purchase_request")
 }
-// Purchase Request end here
+
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum PRStatus {
+  WAITING
+  PARTIAL
+  COMPLETE
+  OVER
+  CANCEL
+}
