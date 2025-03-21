@@ -77,14 +77,22 @@ export class PurchaseRequestsService {
     });
   }
 
+  //todo: i commented this code for my learning purpose
+  // async findAll() {
+  //   return this.databaseService.purchaseRequest.findMany({
+  //     include: {
+  //       items: {
+  //         include: {
+  //           item: true,
+  //         },
+  //       },
+  //     },
+  //   });
+  // }
   async findAll() {
     return this.databaseService.purchaseRequest.findMany({
       include: {
-        items: {
-          include: {
-            item: true,
-          },
-        },
+        items: true,
       },
     });
   }
@@ -93,11 +101,7 @@ export class PurchaseRequestsService {
     const request = await this.databaseService.purchaseRequest.findUnique({
       where: { id },
       include: {
-        items: {
-          include: {
-            item: true,
-          },
-        },
+        items: true,
       },
     });
 
