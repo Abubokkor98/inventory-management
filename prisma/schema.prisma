@@ -63,7 +63,7 @@ model PurchaseRequest {
   id        String                @id @default(uuid())
   items     PurchaseRequestItem[]
   totalQty  Int
-  price     Float
+  totalPrice     Float
   status    PRStatus
 }
 

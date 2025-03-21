@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { Prisma, PRStatus } from '@prisma/client';
 import { CreatePurchaseRequestDto } from './dto/create-purchase-request.dto';
@@ -9,7 +13,7 @@ export class PurchaseRequestsService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async createPurchaseRequest(dto: CreatePurchaseRequestDto) {
-    return this.databaseService.$transaction(async (prisma) => { // Fixed transaction access
+    return this.databaseService.$transaction(async (prisma) => {
       const itemsWithDetails = await Promise.all(
         dto.items.map(async (item) => {
           const itemMaster = await prisma.itemMaster.findUnique({
@@ -23,7 +27,7 @@ export class PurchaseRequestsService {
 
           if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
             throw new BadRequestException(
-              `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`
+              `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
             );
           }
 
@@ -31,13 +35,16 @@ export class PurchaseRequestsService {
             ...item,
             price: itemMaster.price,
           };
-        })
+        }),
       );
 
-      const totalQty = itemsWithDetails.reduce((sum, item) => sum + item.quantity, 0);
+      const totalQty = itemsWithDetails.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
       const totalPrice = itemsWithDetails.reduce(
         (sum, item) => sum + item.quantity * item.price,
-        0
+        0,
       );
 
       const purchaseRequest = await prisma.purchaseRequest.create({
@@ -56,14 +63,15 @@ export class PurchaseRequestsService {
         include: { items: true },
       });
 
-      await Promise.all(
-        itemsWithDetails.map((item) =>
-          prisma.stock.update({
-            where: { itemId: item.itemId },
-            data: { quantity: { decrement: item.quantity } },
-          })
-        )
-      );
+      //todo: i will need this when i create purchase order
+      // await Promise.all(
+      //   itemsWithDetails.map((item) =>
+      //     prisma.stock.update({
+      //       where: { itemId: item.itemId },
+      //       data: { quantity: { decrement: item.quantity } },
+      //     }),
+      //   ),
+      // );
 
       return purchaseRequest;
     });
@@ -99,18 +107,22 @@ export class PurchaseRequestsService {
     return request;
   }
 
+  // todo: facing problem with update , will change it later
   async update(id: string, updateDto: UpdatePurchaseRequestDto) {
-    await this.findOne(id); // Check if exists
-    
+    await this.findOne(id);
+
     // Add custom validation here if needed
     if (updateDto.status) {
       // Example: Validate status transitions
       const current = await this.databaseService.purchaseRequest.findUnique({
         where: { id },
-        select: { status: true }
+        select: { status: true },
       });
 
-      if (current?.status === PRStatus.COMPLETE && updateDto.status !== PRStatus.COMPLETE) {
+      if (
+        current?.status === PRStatus.COMPLETE &&
+        updateDto.status !== PRStatus.COMPLETE
+      ) {
         throw new BadRequestException('Cannot modify completed requests');
       }
     }
@@ -123,8 +135,6 @@ export class PurchaseRequestsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id); // Check if exists
-    
     return this.databaseService.purchaseRequest.delete({
       where: { id },
     });
