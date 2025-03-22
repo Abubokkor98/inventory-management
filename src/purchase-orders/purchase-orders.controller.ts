@@ -19,7 +19,7 @@ export class PurchaseOrdersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.purchaseOrdersService.findOne(+id);
+    return this.purchaseOrdersService.findOne(id);
   }
 
   @Patch(':id')
@@ -29,6 +29,6 @@ export class PurchaseOrdersController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.purchaseOrdersService.remove(+id);
+    return this.purchaseOrdersService.remove(id);
   }
 }

@@ -128,19 +128,38 @@ export class PurchaseOrdersService {
     }
   }
 
-  findAll() {
+  async findAll() {
     return this.databaseService.purchaseOrder.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} purchaseOrder`;
+  async findOne(id: string) {
+    const request = await this.databaseService.purchaseOrder.findUnique({
+      where: { id },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Purchase order with ID ${id} not found`);
+    }
+    return request;
   }
 
-  update(id: number, updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
+  async update(id: number, updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
     return `This action updates a #${id} purchaseOrder`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} purchaseOrder`;
+  async remove(id: string) {
+    // Check if the purchase order exists
+    const existingOrder = await this.databaseService.purchaseOrder.findUnique({
+      where: { id },
+    });
+
+    if (!existingOrder) {
+      throw new NotFoundException(`Purchase order with ID ${id} not found`);
+    }
+
+    // Proceed with deletion
+    return await this.databaseService.purchaseOrder.delete({
+      where: { id },
+    });
   }
 }
