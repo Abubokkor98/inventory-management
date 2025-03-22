@@ -4,8 +4,8 @@ generator client {
 
 // prisma/schema.prisma
 datasource db {
-  provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
   // uncomment next line if you use Prisma <5.10
   // directUrl = env("DATABASE_URL_UNPOOLED")
 }
@@ -28,6 +28,8 @@ model ItemMaster {
   price               Float                 @default(0.0)
   purchaseRequestItem PurchaseRequestItem[]
   stock               Stock?                @relation("ItemStock")
+  purchaseOrderItems  PurchaseOrderItem[]
+  goodsReceivedItems  GoodsReceivedItem[]
 }
 
 model Stock {
@@ -67,4 +69,50 @@ enum PRStatus {
   COMPLETE
   OVER
   CANCEL
+}
+
+// purchase order 
+
+model PurchaseOrder {
+  id            String              @id @default(uuid())
+  totalQty      Int
+  remainingQty  Int
+  status        POStatus            @default(WAITING)
+  totalPrice    Float
+  items         PurchaseOrderItem[]
+  goodsReceived GoodsReceived[]
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  itemId          String
+  quantity        Int
+  price           Float
+  remainingQty    Int
+  item            ItemMaster    @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_po_item_master")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade, map: "fk_purchase_order")
+}
+
+model GoodsReceived {
+  id              String              @id @default(uuid())
+  purchaseOrderId String
+  totalQty        Int
+  items           GoodsReceivedItem[]
+  purchaseOrder   PurchaseOrder       @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade, map: "fk_goods_po")
+}
+
+model GoodsReceivedItem {
+  id              String        @id @default(uuid())
+  goodsReceivedId String
+  itemId          String
+  quantity        Int
+  item            ItemMaster    @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_gr_item_master")
+  goodsReceived   GoodsReceived @relation(fields: [goodsReceivedId], references: [id], onDelete: Cascade, map: "fk_goods_received")
+}
+
+enum POStatus {
+  WAITING
+  PARTIAL
+  COMPLETE
 }
