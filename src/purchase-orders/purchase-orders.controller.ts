@@ -24,7 +24,7 @@ export class PurchaseOrdersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
-    return this.purchaseOrdersService.update(+id, updatePurchaseOrderDto);
+    return this.purchaseOrdersService.update(id, updatePurchaseOrderDto);
   }
 
   @Delete(':id')

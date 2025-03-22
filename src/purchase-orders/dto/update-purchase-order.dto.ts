@@ -1,4 +1,20 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreatePurchaseOrderDto } from './create-purchase-order.dto';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsUUID, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class UpdatePurchaseOrderDto extends PartialType(CreatePurchaseOrderDto) {}
+class UpdatePurchaseOrderItemDto {
+  @IsNotEmpty()
+  @IsUUID()
+  itemId: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  quantity: number;
+}
+
+export class UpdatePurchaseOrderDto {
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdatePurchaseOrderItemDto)
+  items?: UpdatePurchaseOrderItemDto[];
+}
