@@ -1,8 +1,23 @@
+import { IsArray, IsNotEmpty, IsUUID, IsNumber, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class PurchaseOrderItemDto {
+  @IsNotEmpty()
+  @IsUUID()
+  itemId: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  quantity: number;
+}
+
 export class CreatePurchaseOrderDto {
+  @IsNotEmpty()
+  @IsUUID()
   purchaseRequestId: string;
-  items: Array<{
-    itemId: string;
-    quantity: number;
-    price: number; // Or i can get current price from ItemMaster
-  }>;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PurchaseOrderItemDto)
+  items: PurchaseOrderItemDto[];
 }
