@@ -40,11 +40,13 @@ model Stock {
 }
 
 model PurchaseRequest {
-  id         String                @id @default(uuid())
-  totalQty   Int
-  status     PRStatus
-  totalPrice Float
-  items      PurchaseRequestItem[]
+  id             String                @id @default(uuid())
+  totalQty       Int
+  leftQty        Int
+  status         PRStatus
+  totalPrice     Float
+  items          PurchaseRequestItem[]
+  purchaseOrders PurchaseOrder[]
 }
 
 model PurchaseRequestItem {
@@ -52,6 +54,7 @@ model PurchaseRequestItem {
   purchaseRequestId String
   itemId            String
   quantity          Int
+  leftQuantity      Int
   price             Float
   item              ItemMaster      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_item_master")
   purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade, map: "fk_purchase_request")
@@ -74,13 +77,15 @@ enum PRStatus {
 // purchase order 
 
 model PurchaseOrder {
-  id            String              @id @default(uuid())
-  totalQty      Int
-  remainingQty  Int
-  status        POStatus            @default(WAITING)
-  totalPrice    Float
-  items         PurchaseOrderItem[]
-  goodsReceived GoodsReceived[]
+  id                String              @id @default(uuid())
+  totalQty          Int
+  remainingQty      Int
+  status            POStatus            @default(WAITING)
+  totalPrice        Float
+  purchaseRequest   PurchaseRequest     @relation(fields: [purchaseRequestId], references: [id])
+  purchaseRequestId String
+  items             PurchaseOrderItem[]
+  goodsReceived     GoodsReceived[]
 }
 
 model PurchaseOrderItem {

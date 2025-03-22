@@ -23,59 +23,51 @@ export class PurchaseRequestsService {
             where: { id: item.itemId },
             include: { stock: true },
           });
-
+  
           if (!itemMaster) {
             throw new NotFoundException(`Item ${item.itemId} not found`);
           }
-
+  
           if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
             throw new BadRequestException(
               `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
             );
           }
-
+  
           return {
             ...item,
             price: itemMaster.price,
+            leftQuantity: item.quantity
           };
         }),
       );
-
+  
       const totalQty = itemsWithDetails.reduce(
         (sum, item) => sum + item.quantity,
         0,
       );
-      const totalPrice = itemsWithDetails.reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0,
-      );
-
+  
       const purchaseRequest = await prisma.purchaseRequest.create({
         data: {
           totalQty,
-          totalPrice: totalPrice,
+          leftQty: totalQty,
+          totalPrice: itemsWithDetails.reduce(
+            (sum, item) => sum + (item.quantity * item.price),
+            0,
+          ),
           status: PRStatus.WAITING,
           items: {
             create: itemsWithDetails.map((item) => ({
               itemId: item.itemId,
               quantity: item.quantity,
               price: item.price,
+              leftQuantity: item.quantity 
             })),
           },
         },
         include: { items: true },
       });
-
-      //todo: i will need this when i create purchase order
-      // await Promise.all(
-      //   itemsWithDetails.map((item) =>
-      //     prisma.stock.update({
-      //       where: { itemId: item.itemId },
-      //       data: { quantity: { decrement: item.quantity } },
-      //     }),
-      //   ),
-      // );
-
+  
       return purchaseRequest;
     });
   }
@@ -115,87 +107,70 @@ export class PurchaseRequestsService {
   }
 
   // todo: facing problem with update , will change it later
-  // async update(id: string, updateDto: UpdatePurchaseRequestDto) {
-  //   await this.findOne(id);
-
-  //   // Add custom validation here if needed
-  //   if (updateDto.status) {
-  //     // Example: Validate status transitions
-  //     const current = await this.databaseService.purchaseRequest.findUnique({
-  //       where: { id },
-  //       select: { status: true },
-  //     });
-
-  //     if (
-  //       current?.status === PRStatus.COMPLETE &&
-  //       updateDto.status !== PRStatus.COMPLETE
-  //     ) {
-  //       throw new BadRequestException('Cannot modify completed requests');
-  //     }
-  //   }
-
-  //   return this.databaseService.purchaseRequest.update({
-  //     where: { id },
-  //     data: updateDto,
-  //     include: { items: true },
-  //   });
-  // }
 
   async update(id: string, updateDto: UpdatePurchaseRequestDto) {
     return this.databaseService.$transaction(async (prisma) => {
-      // 1. Check existing request and status
       const existingRequest = await prisma.purchaseRequest.findUnique({
         where: { id },
         include: { items: true },
       });
-
-      if (!existingRequest)
-        throw new NotFoundException(`Request ${id} not found`);
+  
+      if (!existingRequest) throw new NotFoundException(`Request ${id} not found`);
       if (existingRequest.status !== PRStatus.WAITING) {
         throw new BadRequestException('Only WAITING requests can be modified');
       }
-
-      // 2. Process item updates if provided
+  
       if (updateDto.items) {
-        // Validate and prepare new items
-        const itemsWithDetails = await this.validateAndPrepareItems(
-          prisma,
-          updateDto.items,
+        const itemsWithDetails = await Promise.all(
+          updateDto.items.map(async (item) => {
+            const itemMaster = await prisma.itemMaster.findUnique({
+              where: { id: item.itemId },
+              include: { stock: true },
+            });
+  
+            if (!itemMaster) throw new NotFoundException(`Item ${item.itemId} not found`);
+            if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
+              throw new BadRequestException(
+                `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`
+              );
+            }
+  
+            return {
+              ...item,
+              price: itemMaster.price,
+              leftQuantity: item.quantity // Initialize left quantity
+            };
+          })
         );
-
-        // Delete existing items and create new ones
+  
+        // Delete existing items
         await prisma.purchaseRequestItem.deleteMany({
           where: { purchaseRequestId: id },
         });
-
-        // Recalculate totals
-        const totalQty = itemsWithDetails.reduce(
-          (sum, item) => sum + item.quantity,
-          0,
-        );
-        const totalPrice = itemsWithDetails.reduce(
-          (sum, item) => sum + item.quantity * item.price,
-          0,
-        );
-
+  
+        // Calculate new totals
+        const totalQty = itemsWithDetails.reduce((sum, item) => sum + item.quantity, 0);
+        const totalPrice = itemsWithDetails.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+  
         return prisma.purchaseRequest.update({
           where: { id },
           data: {
             totalQty,
+            leftQty: totalQty, // Reset left quantity
             totalPrice,
             items: {
-              create: itemsWithDetails.map((item) => ({
+              create: itemsWithDetails.map(item => ({
                 itemId: item.itemId,
                 quantity: item.quantity,
                 price: item.price,
+                leftQuantity: item.quantity // Add required field
               })),
             },
           },
           include: { items: true },
         });
       }
-
-      // 3. If no items provided, return original request
+  
       return existingRequest;
     });
   }
