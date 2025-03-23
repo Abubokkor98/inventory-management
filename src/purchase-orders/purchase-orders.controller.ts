@@ -9,7 +9,7 @@ export class PurchaseOrdersController {
 
   @Post()
   create(@Body() createPurchaseOrderDto: CreatePurchaseOrderDto) {
-    return this.purchaseOrdersService.createPurchaseOrder(createPurchaseOrderDto);
+    return this.purchaseOrdersService.create(createPurchaseOrderDto);
   }
 
   @Get()

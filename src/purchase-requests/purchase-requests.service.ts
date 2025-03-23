@@ -23,36 +23,36 @@ export class PurchaseRequestsService {
             where: { id: item.itemId },
             include: { stock: true },
           });
-  
+
           if (!itemMaster) {
             throw new NotFoundException(`Item ${item.itemId} not found`);
           }
-  
+          // todo: don't need to check stock quantity
           if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
             throw new BadRequestException(
               `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
             );
           }
-  
+
           return {
             ...item,
             price: itemMaster.price,
-            leftQuantity: item.quantity
+            leftQuantity: item.quantity,
           };
         }),
       );
-  
+
       const totalQty = itemsWithDetails.reduce(
         (sum, item) => sum + item.quantity,
         0,
       );
-  
+
       const purchaseRequest = await prisma.purchaseRequest.create({
         data: {
           totalQty,
           leftQty: totalQty,
           totalPrice: itemsWithDetails.reduce(
-            (sum, item) => sum + (item.quantity * item.price),
+            (sum, item) => sum + item.quantity * item.price,
             0,
           ),
           status: PRStatus.WAITING,
@@ -61,13 +61,13 @@ export class PurchaseRequestsService {
               itemId: item.itemId,
               quantity: item.quantity,
               price: item.price,
-              leftQuantity: item.quantity 
+              leftQuantity: item.quantity,
             })),
           },
         },
         include: { items: true },
       });
-  
+
       return purchaseRequest;
     });
   }
@@ -114,12 +114,13 @@ export class PurchaseRequestsService {
         where: { id },
         include: { items: true },
       });
-  
-      if (!existingRequest) throw new NotFoundException(`Request ${id} not found`);
+
+      if (!existingRequest)
+        throw new NotFoundException(`Request ${id} not found`);
       if (existingRequest.status !== PRStatus.WAITING) {
         throw new BadRequestException('Only WAITING requests can be modified');
       }
-  
+
       if (updateDto.items) {
         const itemsWithDetails = await Promise.all(
           updateDto.items.map(async (item) => {
@@ -127,31 +128,41 @@ export class PurchaseRequestsService {
               where: { id: item.itemId },
               include: { stock: true },
             });
-  
-            if (!itemMaster) throw new NotFoundException(`Item ${item.itemId} not found`);
-            if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
+
+            if (!itemMaster)
+              throw new NotFoundException(`Item ${item.itemId} not found`);
+            if (
+              !itemMaster.stock ||
+              itemMaster.stock.quantity < item.quantity
+            ) {
               throw new BadRequestException(
-                `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`
+                `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
               );
             }
-  
+
             return {
               ...item,
               price: itemMaster.price,
-              leftQuantity: item.quantity // Initialize left quantity
+              leftQuantity: item.quantity, // Initialize left quantity
             };
-          })
+          }),
         );
-  
+
         // Delete existing items
         await prisma.purchaseRequestItem.deleteMany({
           where: { purchaseRequestId: id },
         });
-  
+
         // Calculate new totals
-        const totalQty = itemsWithDetails.reduce((sum, item) => sum + item.quantity, 0);
-        const totalPrice = itemsWithDetails.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-  
+        const totalQty = itemsWithDetails.reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
+        const totalPrice = itemsWithDetails.reduce(
+          (sum, item) => sum + item.quantity * item.price,
+          0,
+        );
+
         return prisma.purchaseRequest.update({
           where: { id },
           data: {
@@ -159,18 +170,18 @@ export class PurchaseRequestsService {
             leftQty: totalQty, // Reset left quantity
             totalPrice,
             items: {
-              create: itemsWithDetails.map(item => ({
+              create: itemsWithDetails.map((item) => ({
                 itemId: item.itemId,
                 quantity: item.quantity,
                 price: item.price,
-                leftQuantity: item.quantity // Add required field
+                leftQuantity: item.quantity, // Add required field
               })),
             },
           },
           include: { items: true },
         });
       }
-  
+
       return existingRequest;
     });
   }

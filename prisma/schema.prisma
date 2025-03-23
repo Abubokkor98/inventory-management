@@ -116,6 +116,7 @@ model GoodsReceivedItem {
   goodsReceived   GoodsReceived @relation(fields: [goodsReceivedId], references: [id], onDelete: Cascade, map: "fk_goods_received")
 }
 
+// todo: will add over status
 enum POStatus {
   WAITING
   PARTIAL
