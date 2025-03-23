@@ -131,7 +131,11 @@ export class PurchaseOrdersService {
   }
 
   async findAll() {
-    return this.databaseService.purchaseOrder.findMany();
+    return this.databaseService.purchaseOrder.findMany({
+      include: {
+        items: true,
+      },
+    });
   }
 
   async findOne(id: string) {
