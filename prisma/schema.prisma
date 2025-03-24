@@ -15,8 +15,13 @@ model User {
   name     String
   email    String @unique
   phone    String @unique
-  role     Role   @default(USER)
+  role     Role   @default(ADMIN)
   password String
+}
+
+enum Role {
+  ADMIN
+  MANAGER
 }
 
 model ItemMaster {
@@ -58,12 +63,6 @@ model PurchaseRequestItem {
   price             Float
   item              ItemMaster      @relation(fields: [itemId], references: [id], onDelete: Cascade, map: "fk_item_master")
   purchaseRequest   PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade, map: "fk_purchase_request")
-}
-
-enum Role {
-  ADMIN
-  MANAGER
-  USER
 }
 
 enum PRStatus {
