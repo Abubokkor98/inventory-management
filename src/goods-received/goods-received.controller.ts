@@ -24,7 +24,7 @@ export class GoodsReceivedController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateGoodsReceivedDto: UpdateGoodsReceivedDto) {
-    return this.goodsReceivedService.update(+id, updateGoodsReceivedDto);
+    return this.goodsReceivedService.update(id, updateGoodsReceivedDto);
   }
 
   @Delete(':id')

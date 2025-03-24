@@ -8,7 +8,7 @@ class GoodsReceivedItemDto {
   itemId: string;
 
   @IsInt()
-  @Min(1)
+  @Min(0)
   quantity: number;
 }
 
