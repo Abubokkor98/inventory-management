@@ -186,34 +186,6 @@ export class PurchaseRequestsService {
     });
   }
 
-  private async validateAndPrepareItems(
-    prisma: any,
-    items: PurchaseRequestItemDto[],
-  ) {
-    return Promise.all(
-      items.map(async (item) => {
-        const itemMaster = await prisma.itemMaster.findUnique({
-          where: { id: item.itemId },
-          include: { stock: true },
-        });
-
-        if (!itemMaster) {
-          throw new NotFoundException(`Item ${item.itemId} not found`);
-        }
-
-        if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
-          throw new BadRequestException(
-            `Insufficient stock for ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
-          );
-        }
-
-        return {
-          ...item,
-          price: itemMaster.price,
-        };
-      }),
-    );
-  }
 
   async remove(id: string) {
     return this.databaseService.purchaseRequest.delete({
