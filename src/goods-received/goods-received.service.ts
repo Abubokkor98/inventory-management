@@ -131,8 +131,18 @@ export class GoodsReceivedService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} goodsReceived`;
+  async findOne(id: string) {
+    const request = await this.databaseService.goodsReceived.findUnique({
+      where: { id },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Goods received ${id} not found`);
+    }
+    return request;
   }
 
   update(id: number, updateGoodsReceivedDto: UpdateGoodsReceivedDto) {
