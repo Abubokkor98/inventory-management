@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+const bcrypt = require('bcrypt');
+
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { DatabaseService } from 'src/database/database.service';
-import { Role } from '@prisma/client';
+import { RegisterDto } from './dto/register.dto';
+
 
 @Injectable()
 export class AuthService {
@@ -11,30 +13,52 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(name: string, email: string, phone: string, password: string) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    return this.databaseService.user.create({
-      data: { name, email, phone, password: hashedPassword },
-    });
+
+  // Registration method
+  async register(registerDto: RegisterDto) {
+    const { name, email, phone, password } = registerDto;
+
+    try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user in the database
+      const user = await this.databaseService.user.create({
+        data: {
+          name,
+          email,
+          phone,
+          password: hashedPassword,
+          role: 'ADMIN', // Default role from your schema
+        },
+      });
+
+      // Return user data (optional)
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+    } catch (error) {
+      // Handle duplicate email/phone errors
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email or phone already exists');
+      }
+      throw error;
+    }
   }
 
   async login(email: string, password: string) {
     const user = await this.databaseService.user.findUnique({
       where: { email },
     });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new Error('Invalid credentials');
-    }
-    return { token: this.jwtService.sign({ id: user.id, role: user.role }) };
-  }
+    console.log('User from DB:', user);
 
-  async findAll(role?: Role) {
-    if (role)
-      return this.databaseService.user.findMany({
-        where: {
-          role,
-        },
-      });
-    return this.databaseService.user.findMany();
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return { access_token: this.jwtService.sign(payload) };
   }
 }

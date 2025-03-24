@@ -1,36 +1,23 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+// src/auth/auth.controller.ts
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Role } from '@prisma/client';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('register')
-  register(
-    @Body()
-    data: {
-      name: string;
-      email: string;
-      phone: string;
-      password: string;
-    },
-  ) {
-    return this.authService.register(
-      data.name,
-      data.email,
-      data.phone,
-      data.password,
-    );
+  @Post('register') // New registration endpoint
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   @Post('login')
-  login(@Body() data: { email: string; password: string }) {
-    return this.authService.login(data.email, data.password);
-  }
-
-  @Get('users')
-  findAll(@Query('role') role?: Role) {
-    return this.authService.findAll(role);
+  async login(@Body() body: { email: string; password: string }) {
+    try {
+      return await this.authService.login(body.email, body.password);
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
   }
 }

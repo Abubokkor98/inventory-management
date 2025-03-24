@@ -6,41 +6,41 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import { Prisma } from '@prisma/client';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UpdateStockDto } from './dto/update-stock.dto';
+import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
-import { UpdateStockDto } from './dto/update-stock.dto';
 
 @Controller('items')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('ADMIN')
+  @Roles('ADMIN')
   create(@Body() createItemDto: Prisma.ItemMasterCreateInput) {
     return this.itemsService.create(createItemDto);
   }
 
-  // get all items
   @Get()
+  @Roles('ADMIN')
   findAll() {
     return this.itemsService.findAll();
   }
 
-  // get a specific item
   @Get(':id')
+  @Roles('ADMIN')
   findOne(@Param('id') id: string) {
     return this.itemsService.findOne(id);
   }
 
-  // update an item
   @Patch(':id')
+  @Roles('ADMIN')
   update(
     @Param('id') id: string,
     @Body() updateItemDto: Prisma.ItemMasterUpdateInput,
@@ -50,6 +50,7 @@ export class ItemsController {
 
   // for only stock update
   @Patch(':id/stock')
+  @Roles('MANAGER')
   async updateStock(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateStockDto: UpdateStockDto,
@@ -57,8 +58,8 @@ export class ItemsController {
     return this.itemsService.updateStock(id, updateStockDto.quantity);
   }
 
-  // delete an item
   @Delete(':id')
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.itemsService.remove(id);
   }
