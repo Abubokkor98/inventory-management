@@ -29,6 +29,6 @@ export class GoodsReceivedController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.goodsReceivedService.remove(+id);
+    return this.goodsReceivedService.remove(id);
   }
 }
