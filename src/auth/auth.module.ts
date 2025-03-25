@@ -1,4 +1,3 @@
-// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -11,14 +10,14 @@ import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
-    DatabaseModule,
-    PassportModule,
+    DatabaseModule, // Imports database module to allow DB interactions
+    PassportModule, // Enables authentication strategies
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
   ],
-  controllers: [AuthController], // Register the controller here
+  controllers: [AuthController],
   providers: [AuthService, JwtStrategy, DatabaseService],
   exports: [AuthService],
 })
