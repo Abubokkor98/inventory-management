@@ -1,98 +1,137 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Inventory Management System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This **Inventory Management System** is built with **NestJS** and **Prisma**, designed to streamline inventory tracking, purchase orders, and stock management. The system supports two user roles with different access levels:
 
-## Description
+- **Admin** → Full access (CRUD for products, purchase orders, and stock management)
+- **Manager** → Can only **update product stock**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+- **Authentication & Authorization** (JWT-based, Role-based access control)
+- **Products Management** (CRUD for inventory items)
+- **Purchase Orders** (CRUD for Purchase Orders)
+- **Goods Received** (Tracks received goods and updates inventory)
+- **Role-Based Access** (Admin and Manager permissions)
 
-```bash
-$ npm install
+## Tech Stack
+
+- **Backend**: NestJS, Prisma ORM, PostgreSQL (Render)
+- **Authentication**: JWT, Passport.js
+- **Database**: PostgreSQL (Neon)
+- **Validation**: Class-validator, Class-transformer
+
+## Installation & Setup
+
+### Prerequisites
+
+- Node.js (v18+)
+- PostgreSQL (Neon Cloud or Local)
+- NestJS CLI installed (`npm install -g @nestjs/cli`)
+
+## 1. Clone the Repository
+
+```sh
+git clone https://github.com/Abubokkor98/inventory-management
+cd inventory-management
 ```
 
-## Compile and run the project
+## 2. Install Dependencies
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```sh
+npm install
 ```
 
-## Run tests
+## 3. Set Up Environment Variables
 
-```bash
-# unit tests
-$ npm run test
+Create a `.env` file in the root directory and configure:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+DATABASE_URL=postgresql://your_username:your_password@your_neon_database_url
+JWT_SECRET=your_secret_key
 ```
 
-## Deployment
+## 4. Set Up Database with Prisma
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
+```sh
+npx prisma migrate dev --name init
+npx prisma generate
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 5. Start the Server
 
-## Resources
+```sh
+npm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## API Routes
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Authentication (`/auth`)
 
-## Support
+- **POST `/auth/register`** → User Registration
+- **POST `/auth/login`** → User Login
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Items (`/items`)
 
-## Stay in touch
+- **GET `/items`** → Get all products _(Admin only)_
+- **GET `/items/:id`** → Get a specific product _(Admin only)_
+- **POST `/items`** → Create a new product _(Admin only)_
+- **PATCH `/items/:id`** → Update product details _(Admin only)_
+- **PATCH `/items/:id/stock`** → Update product stock _(Manager only)_
+- **DELETE `/items/:id`** → Delete a product _(Admin only)_
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Purchase Requests (`/purchase-requests`)
+
+- **POST `/purchase-requests`** → Creates a purchase order
+- **GET `/purchase-requests`** → View all purchase requests
+- **GET `/purchase-requests/:id`** → View a single purchase request
+- **PATCH `/purchase-requests/:id`** → Update a purchase request
+- **DELETE `/purchase-requests/:id`** → Delete a purchase request
+
+### Purchase Orders (`/purchase-orders`)
+
+- **POST `/purchase-orders`** → Creates a purchase order
+- **GET `/purchase-orders`** → View all purchase orders
+- **GET `/purchase-orders/:id`** → View a single purchase order
+- **PATCH `/purchase-orders/:id`** → Update a purchase order
+- **DELETE `/purchase-orders/:id`** → Delete a purchase order
+
+### Goods Received (`/goods-received`)
+
+- **POST `/goods-received`** → Creates a goods-received
+- **GET `/goods-received`** → View all goods-received
+- **GET `/goods-received:id`** → View a single goods-received
+- **PATCH `goods-received/:id`** → Update a goods-received
+- **DELETE `/goods-received/:id`** → Delete a goods-received
+
+## Error Handling
+
+| Error Code | Description           |
+| ---------- | --------------------- |
+| `400`      | Bad Request           |
+| `401`      | Unauthorized          |
+| `403`      | Forbidden             |
+| `404`      | Not Found             |
+| `500`      | Internal Server Error |
+
+---
+
+## Role-Based Access
+
+| Role    | Authentication | Manage Items      | Purchase Requests | Purchase Orders | Goods Received |
+| ------- | -------------- | ----------------- | ----------------- | --------------- | -------------- |
+| Admin   | ✅             | ✅ (CRUD)         | ✅ (CRUD)         | ✅ (CRUD)       | ✅ (CRUD)      |
+| Manager | ✅             | ✅ (Update Stock) | ❌                | ❌              | ❌             |
+
+---
+
+## Contributing
+
+Pull requests are welcome! Please ensure your code follows NestJS best practices.
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is open-source under the **MIT License**.
