@@ -15,7 +15,7 @@ model User {
   name     String
   email    String @unique
   phone    String @unique
-  role     Role   @default(ADMIN)
+  role     Role   @default(MANAGER)
   password String
 }
 

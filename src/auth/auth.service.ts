@@ -31,7 +31,7 @@ export class AuthService {
           email,
           phone,
           password: hashedPassword,
-          role: 'ADMIN',
+          role: 'MANAGER',
         },
       });
 
