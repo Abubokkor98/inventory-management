@@ -11,6 +11,7 @@ This **Inventory Management System** is built with **NestJS** and **Prisma**, de
 
 - **Authentication & Authorization** (JWT-based, Role-based access control)
 - **Products Management** (CRUD for inventory items)
+- **Purchase Requests** (CRUD for Purchase Requests)
 - **Purchase Orders** (CRUD for Purchase Orders)
 - **Goods Received** (Tracks received goods and updates inventory)
 - **Role-Based Access** (Admin and Manager permissions)
