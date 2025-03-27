@@ -131,6 +131,13 @@ npm run start:dev
 
 Pull requests are welcome! Please ensure your code follows NestJS best practices.
 
+## About the Developer
+
+Built with ❤️ and passion by Abu Bokkor Siddik.
+
+- **GitHub**: [Abubokkor98](https://github.com/Abubokkor98)
+- **LinkedIn**: [Connect with me](https://www.linkedin.com/in/abubokkor)
+
 ---
 
 ## License
