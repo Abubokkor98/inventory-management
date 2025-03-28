@@ -2,7 +2,7 @@
 
 ## Overview
 
-This **Inventory Management System** is built with **NestJS** and **Prisma**, designed to streamline inventory tracking, purchase orders, and stock management. The system supports two user roles with different access levels:
+This **Inventory Management System** is built with **NestJS** and **Prisma**, designed to streamline inventory tracking, Purchase Requests, purchase orders, and stock management. The system supports two user roles with different access levels:
 
 - **Admin** → Full access (CRUD for products, purchase orders, and stock management)
 - **Manager** → Can only **update product stock**
