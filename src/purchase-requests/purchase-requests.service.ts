@@ -174,7 +174,7 @@ export class PurchaseRequestsService {
                 itemId: item.itemId,
                 quantity: item.quantity,
                 price: item.price,
-                leftQuantity: item.quantity, // Add required field
+                leftQuantity: item.quantity,
               })),
             },
           },
@@ -185,7 +185,6 @@ export class PurchaseRequestsService {
       return existingRequest;
     });
   }
-
 
   async remove(id: string) {
     return this.databaseService.purchaseRequest.delete({
