@@ -121,7 +121,7 @@ export class PurchaseOrdersService {
         error instanceof NotFoundException ||
         error instanceof BadRequestException
       ) {
-        throw error; // Let NestJS handle known errors
+        throw error;
       }
       console.error('Error creating purchase order:', error);
       throw new InternalServerErrorException(
@@ -364,7 +364,6 @@ export class PurchaseOrdersService {
   }
 
   async remove(id: string) {
-    // Check if the purchase order exists
     const existingOrder = await this.databaseService.purchaseOrder.findUnique({
       where: { id },
     });
