@@ -28,11 +28,11 @@ export class PurchaseRequestsService {
             throw new NotFoundException(`Item ${item.itemId} not found`);
           }
           // todo: don't need to check stock quantity
-          if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
-            throw new BadRequestException(
-              `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
-            );
-          }
+          // if (!itemMaster.stock || itemMaster.stock.quantity < item.quantity) {
+          //   throw new BadRequestException(
+          //     `Insufficient stock for item ${itemMaster.sku}. Available: ${itemMaster.stock?.quantity || 0}`,
+          //   );
+          // }
 
           return {
             ...item,
