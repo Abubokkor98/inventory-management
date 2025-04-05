@@ -20,11 +20,14 @@ export class PurchaseOrdersService {
           where: { id: dto.purchaseRequestId },
           include: { items: true },
         });
-        // todo: status over
+        //  Check if purchase request exists and is not already fulfilled or over
         if (!purchaseRequest)
           throw new NotFoundException('Purchase request not found');
-        if (purchaseRequest.status === PRStatus.COMPLETE)
-          throw new BadRequestException('Request already fulfilled');
+        if (
+          purchaseRequest.status === PRStatus.COMPLETE ||
+          purchaseRequest.status === PRStatus.OVER
+        )
+          throw new BadRequestException('Request already fulfilled or over');
 
         // 2. Validate Each Item
         const updatedItems = await Promise.all(
@@ -38,11 +41,11 @@ export class PurchaseOrdersService {
               );
 
             // todo: status over
-            if (orderItem.quantity > prItem.leftQuantity) {
-              throw new BadRequestException(
-                `Insufficient quantity for item ${orderItem.itemId}`,
-              );
-            }
+            // if (orderItem.quantity > prItem.leftQuantity) {
+            //   throw new BadRequestException(
+            //     `Insufficient quantity for item ${orderItem.itemId}`,
+            //   );
+            // }
 
             // 3. Update Left Quantity
             return prisma.purchaseRequestItem.update({
@@ -60,7 +63,9 @@ export class PurchaseOrdersService {
 
         // 5. Update Purchase Request Status
         let newStatus: PRStatus = purchaseRequest.status;
-        if (newLeftQty === 0) {
+        if (newLeftQty < 0) {
+          newStatus = PRStatus.OVER;
+        } else if (newLeftQty === 0) {
           newStatus = PRStatus.COMPLETE;
         } else if (newLeftQty < purchaseRequest.totalQty) {
           newStatus = PRStatus.PARTIAL;
