@@ -33,7 +33,11 @@ export class ItemsService {
 
   // find all items
   async findAll() {
-    return this.databaseService.itemMaster.findMany();
+    return this.databaseService.itemMaster.findMany({
+      include: {
+        stock: true,
+      },
+    });
   }
 
   // find a specific item
