@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { DatabaseService } from 'src/database/database.service';
-
+//injectable is used to create a service that can be injected into other classes
 @Injectable()
 export class ItemsService {
   constructor(private readonly databaseService: DatabaseService) {}
